@@ -19,7 +19,8 @@ from pathlib import Path
 TOOLS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TOOLS_DIR.parent
 REPO_ROOT = SKILL_DIR.parent.parent
-REQUIREMENTS_FILE = REPO_ROOT / "requirements.txt"
+REQUIREMENTS_FILE = SKILL_DIR / "requirements.txt"
+VENV_DIR = SKILL_DIR / ".venv"
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,10 +38,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def run_command(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
+def run_command(
+    args: list[str], *, check: bool = True, cwd: Path | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args,
-        cwd=REPO_ROOT,
+        cwd=cwd or REPO_ROOT,
         check=check,
         capture_output=True,
         text=True,
@@ -87,8 +90,14 @@ def sync_python_dependencies() -> None:
         print("requirements.txt not found; skipping Python dependency sync.")
         return
 
-    print("requirements.txt changed. Syncing Python dependencies...")
-    result = run_command([sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS_FILE)])
+    if not VENV_DIR.exists():
+        print(".venv not found. Creating virtual environment with uv...")
+        run_command(["uv", "venv", str(VENV_DIR)], cwd=SKILL_DIR)
+
+    print("requirements.txt changed. Syncing Python dependencies with uv...")
+    result = run_command(
+        ["uv", "pip", "install", "-r", str(REQUIREMENTS_FILE)], cwd=SKILL_DIR
+    )
     if result.stdout.strip():
         print(result.stdout.strip())
     if result.stderr.strip():

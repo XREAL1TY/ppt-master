@@ -10,6 +10,8 @@ description: >
 # PPT Master Skill
 
 > AI-driven multi-format SVG content generation system. Converts source documents into high-quality SVG pages through multi-role collaboration and exports to PPTX.
+>
+> **Python environment**: All `python3 ${SKILL_DIR}/scripts/...` commands require `${SKILL_DIR}/.venv/`. Use `${SKILL_DIR}/.venv/bin/python3` or `source ${SKILL_DIR}/.venv/bin/activate`. One-time setup: `uv venv ${SKILL_DIR}/.venv && uv pip install -r ${SKILL_DIR}/requirements.txt`.
 
 **Core Pipeline**: `Source Document → Create Project → [Template] → Strategist → [Image_Generator] → Executor Live Preview → Quality Check → Post-processing → Export`
 
