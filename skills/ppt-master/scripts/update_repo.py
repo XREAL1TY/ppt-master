@@ -90,13 +90,22 @@ def sync_python_dependencies() -> None:
         print("requirements.txt not found; skipping Python dependency sync.")
         return
 
+    if shutil.which("uv") is None:
+        raise RuntimeError(
+            "uv is not installed. Install it first:\n"
+            "  macOS:  brew install uv\n"
+            "  Linux:  curl -LsSf https://astral.sh/uv/install.sh | sh"
+        )
+
     if not VENV_DIR.exists():
         print(".venv not found. Creating virtual environment with uv...")
         run_command(["uv", "venv", str(VENV_DIR)], cwd=SKILL_DIR)
 
+    python_bin = str(VENV_DIR / "bin" / "python3")
     print("requirements.txt changed. Syncing Python dependencies with uv...")
     result = run_command(
-        ["uv", "pip", "install", "-r", str(REQUIREMENTS_FILE)], cwd=SKILL_DIR
+        ["uv", "pip", "install", "-r", str(REQUIREMENTS_FILE), "--python", python_bin],
+        cwd=SKILL_DIR,
     )
     if result.stdout.strip():
         print(result.stdout.strip())

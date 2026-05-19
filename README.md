@@ -1,9 +1,8 @@
 # PPT Master — AI generates natively editable PPTX from any document
 
-[![Version](https://img.shields.io/badge/version-v2.7.0-blue.svg)](https://github.com/hugohe3/ppt-master/releases)
+[![Version](https://img.shields.io/badge/version-v2.7.1-blue.svg)](https://github.com/XREAL1TY/ppt-master/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/hugohe3/ppt-master.svg)](https://github.com/hugohe3/ppt-master/stargazers)
-[![AtomGit stars](https://atomgit.com/hugohe3/ppt-master/star/badge.svg)](https://atomgit.com/hugohe3/ppt-master)
+[![GitHub stars](https://img.shields.io/github/stars/XREAL1TY/ppt-master.svg)](https://github.com/XREAL1TY/ppt-master/stargazers)
 
 English | [中文](./README_CN.md)
 
@@ -118,35 +117,27 @@ I'm a finance professional (CPA · CPV · Consulting Engineer (Investment)) who 
 
 ### 1. Prerequisites
 
-**You only need Python.** Everything else is installed via `pip install -r requirements.txt`.
+**You only need Python and uv.** `uv` creates an isolated virtual environment so project dependencies don't touch your system Python. Install uv: `brew install uv` (macOS) / `curl -LsSf https://astral.sh/uv/install.sh | sh` (Linux).
 
 | Dependency | Required? | What it does |
 |------------|:---------:|--------------|
-| [Python](https://www.python.org/downloads/) 3.10+ | ✅ **Yes** | Core runtime — the only thing you actually need to install |
+| [Python](https://www.python.org/downloads/) 3.10+ | ✅ **Yes** | Core runtime |
+| [uv](https://docs.astral.sh/uv/) | ✅ **Yes** | Package manager — creates isolated venv, installs dependencies |
 
-> **TL;DR** — Install Python, run `pip install -r requirements.txt`, and you're ready to generate presentations.
-
-<details open>
-<summary><strong>Windows</strong> — see the dedicated step-by-step guide ⚠️</summary>
-
-Windows requires a few extra steps (PATH setup, execution policy, etc.). We wrote a **step-by-step guide** specifically for Windows users:
-
-**📖 [Windows Installation Guide](./docs/windows-installation.md)** — from zero to a working presentation in 10 minutes.
-
-Quick version: download Python from [python.org](https://www.python.org/downloads/) → **check "Add to PATH"** during install → `pip install -r requirements.txt` → done.
-</details>
+> **TL;DR** — Install Python + uv, run `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`, and you're ready to generate presentations.
 
 <details>
 <summary><strong>macOS / Linux</strong> — install and go</summary>
 
 ```bash
 # macOS
-brew install python
-pip install -r requirements.txt
+brew install python uv
+uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt
 
 # Ubuntu / Debian
-sudo apt install python3 python3-pip
-pip install -r requirements.txt
+sudo apt install python3
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt
 ```
 </details>
 
@@ -180,35 +171,53 @@ PPT Master runs in **any tool with agent capability** — read/write files, exec
 
 ### 3. Set Up
 
-**Option A — Download ZIP** (no Git required): click **Code → Download ZIP** on the [GitHub page](https://github.com/hugohe3/ppt-master), then unzip.
-
-**Option B — Git clone** (requires [Git](https://git-scm.com/downloads) installed):
-
-```bash
-git clone https://github.com/hugohe3/ppt-master.git
-cd ppt-master
-```
-
-Then install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-To update later (Option A / B): `python3 skills/ppt-master/scripts/update_repo.py`
-
-> **Option C — Skill marketplace**: the repo ships `.claude-plugin/marketplace.json`, so it can be installed through the [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) ecosystem:
+> **Recommended — Option 1: npx skills add** (cross-agent CLI, works with Claude Code, Cursor, Codex, etc.)
 >
 > ```bash
-> # Cross-agent CLI (Claude Code, Cursor, Codex, etc.)
-> npx skills add hugohe3/ppt-master
+> npx skills add XREAL1TY/ppt-master
+> ```
 >
-> # Or inside Claude Code
-> /plugin marketplace add hugohe3/ppt-master
+> **⚠️ After installing, you MUST create the virtual environment before first use:**
+>
+> ```bash
+> cd ~/.claude/skills/ppt-master  # (or ~/.agent/skills/ppt-master) — this is ${SKILL_DIR}
+> uv venv .venv && uv pip install -r requirements.txt
+> ```
+>
+> **Option 2: Claude Code plugin** (inside Claude Code only)
+>
+> ```bash
+> /plugin marketplace add XREAL1TY/ppt-master
 > /plugin install ppt-master@ppt-master
 > ```
 >
-> Both install paths above only fetch the skill files (not the full repo); you still need to `pip install -r requirements.txt` from the installed location for the post-processing scripts to run.
+> Then create the venv from the plugin install path (replace `*` with the installed version):
+>
+> ```bash
+> cd ~/.claude/plugins/cache/ppt-master/ppt-master/*/skills/ppt-master  # this is ${SKILL_DIR}
+> uv venv .venv && uv pip install -r requirements.txt
+> ```
+>
+> <details>
+> <summary><strong>Option 3: Git clone / ZIP</strong> — full repo, for contributors or offline use</summary>
+>
+> **Download ZIP** (no Git required): [GitHub](https://github.com/XREAL1TY/ppt-master) → **Code → Download ZIP**, then unzip.
+>
+> **Git clone** (requires [Git](https://git-scm.com/downloads)):
+>
+> ```bash
+> git clone https://github.com/XREAL1TY/ppt-master.git
+> cd ppt-master
+> ```
+>
+> **⚠️ MUST create the virtual environment on first install:**
+>
+> ```bash
+> uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt
+> ```
+>
+> To update later: `skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/update_repo.py`
+> </details>
 
 ### 4. Create
 
@@ -268,7 +277,6 @@ PPT Master reads the current process environment first, then the first `.env` fo
 | | Document | Description |
 |---|----------|-------------|
 | 🆚 | [Why PPT Master](./docs/why-ppt-master.md) | How it compares to Gamma, Copilot, and other AI tools |
-| 🪟 | [Windows Installation](./docs/windows-installation.md) | Step-by-step setup guide for Windows users |
 | 📖 | [SKILL.md](./skills/ppt-master/SKILL.md) | Core workflow and rules |
 | 🎨 | [Templates Guide](./docs/templates-guide.md) | Use, derive (the focus), and template boundaries; covers `standard` vs `fidelity` modes |
 | 📐 | [Canvas Formats](./skills/ppt-master/references/canvas-formats.md) | PPT 16:9, Xiaohongshu, WeChat, and 10+ formats |
