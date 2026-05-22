@@ -15,7 +15,7 @@
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/XREAL1TY/ppt-master.git",
-        "path": "skills/ppt-master"
+        "path": "skills"
       },
       "description": "Generate natively editable PPTX from PDF / DOCX / URL / Markdown — real DrawingML shapes, text boxes, charts, and animations. Requires Python dependencies — run `uv venv .venv && uv pip install -r requirements.txt` from the skill directory before first use.",
       "author": {
