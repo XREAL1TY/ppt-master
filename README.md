@@ -1,6 +1,6 @@
 # PPT Master — AI generates natively editable PPTX from any document
 
-[![Version](https://img.shields.io/badge/version-v2.7.1-blue.svg)](https://github.com/XREAL1TY/ppt-master/releases)
+[![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](https://github.com/XREAL1TY/ppt-master/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/XREAL1TY/ppt-master.svg)](https://github.com/XREAL1TY/ppt-master/stargazers)
 
