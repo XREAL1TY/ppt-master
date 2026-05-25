@@ -36,10 +36,6 @@
         "skill",
         "office",
         "document-conversion"
-      ],
-      "strict": false,
-      "skills": [
-        "./"
       ]
     }
   ]
