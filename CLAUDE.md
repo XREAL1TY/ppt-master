@@ -77,6 +77,10 @@ skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/project_manager.py
 
 # Image tools and SVG quality check
 skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/analyze_images.py <project_path>/images
+# Formula rendering — manifest written by Strategist after typography confirmation:
+skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/latex_render.py <project_path>
+skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/latex_render.py <project_path> --dry-run
+skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/latex_render.py <project_path> --providers codecogs,quicklatex,mathpad,wikimedia
 # In-pipeline AI image generation — manifest mode (required, even for 1 image):
 skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/image_gen.py --manifest <project_path>/images/image_prompts.json
 skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/image_gen.py --render-md <project_path>/images/image_prompts.json
