@@ -193,6 +193,8 @@ PPT Master runs in **any tool with agent capability** — read/write files, exec
 > uv venv .venv && uv pip install -r requirements.txt
 > ```
 >
+> **After `npx skills update`:** the skill directory is replaced, so `.venv` is lost. Re-run the two commands above to recreate it.
+>
 > **Option 2: Claude Code plugin** (inside Claude Code only)
 >
 > ```bash
@@ -206,6 +208,8 @@ PPT Master runs in **any tool with agent capability** — read/write files, exec
 > cd ~/.claude/plugins/cache/ppt-master/ppt-master/*/skills/ppt-master  # this is ${SKILL_DIR}
 > uv venv .venv && uv pip install -r requirements.txt
 > ```
+>
+> **After plugin update:** `.venv` is lost — re-run the two commands above.
 >
 > <details>
 > <summary><strong>Option 3: Git clone / ZIP</strong> — full repo, for contributors or offline use</summary>
