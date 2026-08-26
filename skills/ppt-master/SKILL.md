@@ -22,6 +22,8 @@ metadata:
 
 PPT Master is a routed presentation workflow. This entry owns global execution discipline and route selection only; each selected route owns its procedure.
 
+> **Python environment**: All `python3 ${SKILL_DIR}/scripts/...` commands require `${SKILL_DIR}/.venv/`. Use `${SKILL_DIR}/.venv/bin/python3` or `source ${SKILL_DIR}/.venv/bin/activate`. One-time setup: `uv venv ${SKILL_DIR}/.venv && uv pip install -r ${SKILL_DIR}/requirements.txt`. After `npx skills update` or plugin update, re-run the setup commands — `.venv` is replaced along with the skill directory.
+
 ## Mandatory Load Order
 
 **Hard rule — paths before commands**: Retain the host-provided absolute

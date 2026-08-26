@@ -189,27 +189,18 @@ Knowing how to use Python and AI agents will matter more and more, and this proj
 
 ### 1. Prerequisites
 
-**All you need to install is [Python](https://www.python.org/downloads/) 3.10+.** Everything else comes with one line — `pip install -r requirements.txt` — after you download the project in Step 3.
-
-<details>
-<summary><strong>Windows</strong> — see the dedicated <a href="./docs/windows-installation.md">step-by-step guide</a> ⚠️</summary>
-
-Windows requires a few extra steps (PATH setup, execution policy, etc.). We wrote a **step-by-step guide** specifically for Windows users:
-
-**📖 [Windows Installation Guide](./docs/windows-installation.md)** — from zero to a working presentation in 10 minutes.
-
-Quick version: download Python from [python.org](https://www.python.org/downloads/) → **check "Add to PATH"** during install → done; dependencies are installed in Step 3.
-</details>
+**You only need Python and uv.** `uv` creates an isolated virtual environment so project dependencies don't touch your system Python. Install uv: `brew install uv` (macOS) / `curl -LsSf https://astral.sh/uv/install.sh | sh` (Linux).
 
 <details>
 <summary><strong>macOS / Linux</strong> — install and go</summary>
 
 ```bash
 # macOS
-brew install python
+brew install python uv
 
 # Ubuntu / Debian
-sudo apt install python3 python3-pip
+sudo apt install python3
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 </details>
 
@@ -249,51 +240,36 @@ Never used one of these? Don't worry — in this project they play exactly one r
 
 ### 3. Set Up
 
-**Option A — Git clone** (recommended; requires [Git](https://git-scm.com/downloads) installed): the preferred path, since a clone can pull the latest version at any time.
+**Option 1: npx skills add** (recommended; cross-agent CLI, works with Claude Code, Cursor, Codex, etc.)
 
 ```bash
-git clone https://github.com/hugohe3/ppt-master.git
+npx skills add XREAL1TY/ppt-master
+```
+
+**⚠️ After installing, you MUST create the virtual environment before first use:**
+
+```bash
+cd ~/.claude/skills/ppt-master  # (or ~/.agents/skills/ppt-master)
+uv venv .venv && uv pip install -r requirements.txt
+```
+
+**After `npx skills update`:** the skill directory is replaced, so `.venv` is lost. Re-run the two commands above to recreate it.
+
+**Option 2: Git clone** (full repo, for contributors or offline use)
+
+```bash
+git clone https://github.com/XREAL1TY/ppt-master.git
 cd ppt-master
+uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt
 ```
 
-Then install dependencies:
+To update later: `skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/update_repo.py`
 
-```bash
-pip install -r requirements.txt
-```
+**Option 3: Download ZIP** (no Git required)
 
-**Option B — Download ZIP** (no Git required; best for a quick trial): click **Code → Download ZIP** on the [GitHub page](https://github.com/hugohe3/ppt-master), then unzip, and install dependencies with `pip install -r requirements.txt`. A ZIP has no Git history, so it can't `git pull` — see Updating Later. If that download is too large or fails, grab the skill-only package `ppt-master-skill-*.zip` (~56 MB, fully functional but without the bundled example decks) from the [Releases](https://github.com/hugohe3/ppt-master/releases) page instead.
+[Download ZIP](https://github.com/XREAL1TY/ppt-master/archive/refs/heads/main.zip), unzip, then `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`. ZIP folders cannot `git pull`; to update, download the latest ZIP and re-run the uv commands. If the full download is too large, grab the skill-only package `ppt-master-skill-*.zip` (~56 MB, fully functional) from the [Releases](https://github.com/XREAL1TY/ppt-master/releases) page instead.
 
-#### Updating Later
-
-**Git clone installs:**
-
-```bash
-python3 skills/ppt-master/scripts/update_repo.py
-```
-
-The script pulls the latest version and syncs Python dependencies when `requirements.txt` changes.
-
-**Download ZIP installs:**
-
-ZIP folders do not include Git history, so they cannot run `git pull`. To update, download the latest ZIP, unzip it into a new folder, copy your old `.env` and `projects/` folder into the new folder, then run:
-
-```bash
-pip install -r requirements.txt
-```
-
-> **Option C — Skill marketplace**: the repo ships `.claude-plugin/marketplace.json`, so it can be installed through the [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) ecosystem:
->
-> ```bash
-> # Cross-agent CLI (Claude Code, Cursor, Codex, etc.)
-> npx skills add hugohe3/ppt-master
->
-> # Or inside Claude Code
-> /plugin marketplace add hugohe3/ppt-master
-> /plugin install ppt-master@ppt-master
-> ```
->
-> Both install paths above only fetch the skill files (not the full repo); you still need to `pip install -r requirements.txt` from the installed location for the post-processing scripts to run.
+> **Option 4 — Claude Code plugin**: `/plugin marketplace add XREAL1TY/ppt-master` then `/plugin install ppt-master@ppt-master`. Create the venv from the plugin install path (replace `*` with the installed version): `cd ~/.claude/plugins/cache/ppt-master/ppt-master/*/skills/ppt-master && uv venv .venv && uv pip install -r requirements.txt`. After plugin update, `.venv` is lost — re-run.
 
 ### 4. Create
 

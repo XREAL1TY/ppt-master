@@ -189,27 +189,18 @@
 
 ### 1. 前置条件
 
-**只需安装 [Python](https://www.python.org/downloads/) 3.10+。** 其余依赖在第 3 步下载好项目后，用一行 `pip install -r requirements.txt` 装齐。
-
-<details>
-<summary><strong>Windows</strong> — 请看专门的<a href="./docs/zh/windows-installation.md">手把手安装指南</a> ⚠️</summary>
-
-Windows 需要一些额外步骤（PATH 设置、执行策略等）。我们为 Windows 用户写了一份**手把手安装指南**：
-
-**📖 [Windows 安装指南](./docs/zh/windows-installation.md)** — 从零到跑通第一份 PPT，10 分钟搞定。
-
-简要流程：从 [python.org](https://www.python.org/downloads/) 下载 Python → **安装时勾选 "Add to PATH"** → 完成，依赖安装见第 3 步。
-</details>
+**只需装 Python 和 uv 即可。** `uv` 创建隔离的虚拟环境，避免项目依赖污染系统 Python。安装 uv：`brew install uv`（macOS）/ `curl -LsSf https://astral.sh/uv/install.sh | sh`（Linux）。
 
 <details>
 <summary><strong>macOS / Linux</strong> — 安装即用</summary>
 
 ```bash
 # macOS
-brew install python
+brew install python uv
 
 # Ubuntu / Debian
-sudo apt install python3 python3-pip
+sudo apt install python3
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 </details>
 
@@ -249,57 +240,36 @@ PPT Master 在**任何具备 agent 能力**（可读写文件、执行命令、�
 
 ### 3. 配置项目
 
-**方式 A — Git clone**（推荐；需先安装 [Git](https://git-scm.com/downloads)）：首选这种方式，因为 clone 可以随时拉取最新版本。
+**方式一：npx skills add**（推荐；跨 agent CLI，支持 Claude Code、Cursor、Codex 等）
 
 ```bash
-# GitHub
-git clone https://github.com/hugohe3/ppt-master.git
-# AtomGit（中国大陆地区网速更快）
-git clone https://atomgit.com/hugohe3/ppt-master.git
+npx skills add XREAL1TY/ppt-master
+```
+
+**⚠️ 安装后，首次使用前必须创建虚拟环境：**
+
+```bash
+cd ~/.claude/skills/ppt-master  # (或 ~/.agents/skills/ppt-master)
+uv venv .venv && uv pip install -r requirements.txt
+```
+
+**执行 `npx skills update` 后：** skill 目录会被整体替换，`.venv` 随之丢失，需重新执行上述两条命令。
+
+**方式二：Git clone**（完整仓库，适合贡献者或离线使用）
+
+```bash
+git clone https://github.com/XREAL1TY/ppt-master.git
 cd ppt-master
+uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt
 ```
 
-然后安装依赖：
+日常更新：`skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/update_repo.py`
 
-```bash
-pip install -r requirements.txt
-```
+**方式三：下载 ZIP**（无需 Git）
 
-**方式 B — 下载 ZIP**（无需安装 Git，适合快速体验）：
-[GitHub](https://github.com/hugohe3/ppt-master) → **Code → Download ZIP** · [AtomGit](https://atomgit.com/hugohe3/ppt-master) → **克隆/下载 → 下载ZIP**（中国大陆地区访问 GitHub 下载不便时用这个，网速更快）；解压后同样用 `pip install -r requirements.txt` 装依赖。ZIP 没有 Git 历史，不能自动 `git pull`（更新见下）。
+[下载 ZIP](https://github.com/XREAL1TY/ppt-master/archive/refs/heads/main.zip)，解压后执行 `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`。ZIP 目录无 Git 历史，无法自动 pull；更新时重新下载最新 ZIP 并重跑 uv 命令。如果完整仓库下载体积太大，可以从 [Releases](https://github.com/XREAL1TY/ppt-master/releases) 下载纯技能包 `ppt-master-skill-*.zip`（约 56 MB，功能完整）。
 
-如果完整仓库下载失败、或嫌体积太大，可以改到 [Releases](https://github.com/hugohe3/ppt-master/releases) 页面下载纯技能包 `ppt-master-skill-*.zip`（约 56 MB，功能完整，但不含内置示例 deck）。
-
-#### 日常更新
-
-**Git clone 安装：**
-
-```bash
-python3 skills/ppt-master/scripts/update_repo.py
-```
-
-脚本会拉取最新版；如果 `requirements.txt` 有变化，会自动同步 Python 依赖。
-
-**下载 ZIP 安装：**
-
-ZIP 目录没有 Git 历史，不能自动 `git pull`。更新时请重新下载最新版 ZIP，解压到新目录，然后把旧目录里的 `.env` 和 `projects/` 复制过去，再执行：
-
-```bash
-pip install -r requirements.txt
-```
-
-> **方式 C — Skill marketplace**：仓库已添加 `.claude-plugin/marketplace.json` 元数据，可通过 [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) 生态一行安装：
->
-> ```bash
-> # 跨 agent CLI（Claude Code、Cursor、Codex 等）
-> npx skills add hugohe3/ppt-master
->
-> # 或在 Claude Code 内
-> /plugin marketplace add hugohe3/ppt-master
-> /plugin install ppt-master@ppt-master
-> ```
->
-> 上述两种安装方式都只会拉取 skill 文件本身（不含完整仓库），后处理脚本仍需在安装目录跑 `pip install -r requirements.txt`。
+> **方式四 — Claude Code 插件**：`/plugin marketplace add XREAL1TY/ppt-master` 然后 `/plugin install ppt-master@ppt-master`。从插件安装路径创建 venv（将 `*` 替换为已安装的版本号）：`cd ~/.claude/plugins/cache/ppt-master/ppt-master/*/skills/ppt-master && uv venv .venv && uv pip install -r requirements.txt`。插件更新后 `.venv` 会丢失，需重跑。
 
 ### 4. 开始创作
 

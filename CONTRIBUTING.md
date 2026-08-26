@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! This guide will help you get started.
 
+> **Fork note:** This is a fork of [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master) that intentionally diverges on dependency management — it uses `uv` with isolated `.venv/` instead of bare `pip`. The rules below (especially "no uv as required dependency") reflect **upstream policy for PRs targeting hugohe3/ppt-master**. Within this fork, uv is the default and only supported install path. If you're contributing to this fork, use `uv venv .venv && uv pip install -r requirements.txt`; if you're preparing a PR for upstream, follow the upstream rules below.
+
 ## Ways to Contribute
 
 - **Templates** — New layout templates or visual styles

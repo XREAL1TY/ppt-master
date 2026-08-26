@@ -5,15 +5,8 @@ Pull the latest Git checkout and sync Python dependencies when the effective
 requirements include tree changes.
 
 Usage:
-    python3 skills/ppt-master/scripts/update_repo.py
-    python3 skills/ppt-master/scripts/update_repo.py --skip-pip
-
-Examples:
-    python3 skills/ppt-master/scripts/update_repo.py
-    python3 skills/ppt-master/scripts/update_repo.py --skip-pip
-
-Dependencies:
-    None (standard library only)
+    skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/update_repo.py
+    skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/update_repo.py --skip-deps
 """
 
 from __future__ import annotations
@@ -34,7 +27,8 @@ configure_utf8_stdio()
 TOOLS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TOOLS_DIR.parent
 REPO_ROOT = SKILL_DIR.parent.parent
-REQUIREMENTS_FILE = REPO_ROOT / "requirements.txt"
+REQUIREMENTS_FILE = SKILL_DIR / "requirements.txt"
+VENV_DIR = SKILL_DIR / ".venv"
 
 
 def non_git_checkout_message() -> str:
@@ -65,8 +59,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
+        "--skip-deps",
         "--skip-pip",
         action="store_true",
+        dest="skip_deps",
         help="Skip Python dependency sync even if the requirements include tree changed.",
     )
     return parser.parse_args(argv)
@@ -77,10 +73,12 @@ def print_status(message: str = "") -> None:
     print(message, file=sys.stderr)
 
 
-def run_command(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
+def run_command(
+    args: list[str], *, check: bool = True, cwd: Path | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args,
-        cwd=REPO_ROOT,
+        cwd=cwd or REPO_ROOT,
         check=check,
         capture_output=True,
         text=True,
@@ -193,8 +191,23 @@ def sync_python_dependencies() -> None:
         print_status("requirements.txt not found; skipping Python dependency sync.")
         return
 
-    print_status("Requirements include tree changed. Syncing Python dependencies...")
-    result = run_command([sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS_FILE)])
+    if shutil.which("uv") is None:
+        raise RuntimeError(
+            "uv is not installed. Install it first:\n"
+            "  macOS:  brew install uv\n"
+            "  Linux:  curl -LsSf https://astral.sh/uv/install.sh | sh"
+        )
+
+    if not VENV_DIR.exists():
+        print(".venv not found. Creating virtual environment with uv...")
+        run_command(["uv", "venv", str(VENV_DIR)], cwd=SKILL_DIR)
+
+    python_bin = str(VENV_DIR / "bin" / "python3")
+    print("Requirements include tree changed. Syncing Python dependencies with uv...")
+    result = run_command(
+        ["uv", "pip", "install", "-r", str(REQUIREMENTS_FILE), "--python", python_bin],
+        cwd=SKILL_DIR,
+    )
     if result.stdout.strip():
         print_status(result.stdout.strip())
     if result.stderr.strip():
@@ -227,8 +240,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print_status(f"Updated from {before_head[:7]} to {after_head[:7]}.")
 
-        if args.skip_pip:
-            print_status("Skipped Python dependency sync (--skip-pip).")
+        if args.skip_deps:
+            print("Skipped Python dependency sync (--skip-deps).")
         elif before_requirements != after_requirements:
             sync_python_dependencies()
         else:

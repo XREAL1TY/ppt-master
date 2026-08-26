@@ -2,12 +2,11 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "ppt-master",
   "owner": {
-    "name": "Hugo He",
-    "email": "heyug3@gmail.com",
-    "url": "https://github.com/hugohe3"
+    "name": "XREAL1TY",
+    "url": "https://github.com/XREAL1TY"
   },
   "metadata": {
-    "description": "PPT Master skill — AI generates natively editable PPTX from any document",
+    "description": "PPT Master skill — AI generates natively editable PPTX from any document (fork with uv venv support)",
     "version": "5.0.0"
   },
   "plugins": [
@@ -15,17 +14,16 @@
       "name": "ppt-master",
       "source": {
         "source": "git-subdir",
-        "url": "https://github.com/hugohe3/ppt-master.git",
+        "url": "https://github.com/XREAL1TY/ppt-master.git",
         "path": "skills"
       },
-      "description": "Generate natively editable PPTX from PDF / DOCX / URL / Markdown — real DrawingML shapes, text boxes, charts, and animations. Note: run `pip install -r requirements.txt` inside the installed plugin directory for the Python post-processing scripts to work.",
+      "description": "Generate natively editable PPTX from PDF / DOCX / URL / Markdown — real DrawingML shapes, text boxes, charts, and animations. Requires Python dependencies — run `uv venv .venv && uv pip install -r requirements.txt` from the skill directory before first use.",
       "author": {
-        "name": "Hugo He",
-        "email": "heyug3@gmail.com",
-        "url": "https://www.hehugo.com/"
+        "name": "XREAL1TY",
+        "url": "https://github.com/XREAL1TY"
       },
-      "homepage": "https://github.com/hugohe3/ppt-master",
-      "repository": "https://github.com/hugohe3/ppt-master",
+      "homepage": "https://github.com/XREAL1TY/ppt-master",
+      "repository": "https://github.com/XREAL1TY/ppt-master",
       "license": "MIT",
       "category": "productivity",
       "keywords": [
