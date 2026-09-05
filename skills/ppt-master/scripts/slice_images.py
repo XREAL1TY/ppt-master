@@ -53,6 +53,7 @@ from PIL import (
     ImageChops,
     ImageFilter,
     ImageMath,
+    ImageOps,
 )
 
 _GRID_RE = re.compile(r"^\s*(\d+)\s*[xX×]\s*(\d+)\s*$")
@@ -584,6 +585,20 @@ def _log_keying_findings(
                 "effect crosses it. Regenerate with a clear key-only gutter; a "
                 "larger --tolerance would eat into the elements."
             )
+        elif (
+            outlier <= tolerance
+            and any("content reaches the" in finding for finding in findings)
+            and not any("boundary pixels stayed opaque" in finding for finding in findings)
+        ):
+            # The key itself passed at this tolerance; only element tips
+            # crossed a gutter. When the farthest gutter pixel exceeds the
+            # tolerance the branch below still offers the rerun instead.
+            _log(
+                "       Content crosses a cell edge: no --bg/--tolerance rerun "
+                "can separate it. Regenerate with a wider key-only gutter "
+                "(each element about 65% of its cell, at least 10% key on "
+                "every side, tips and effects included)."
+            )
         else:
             pure = _nearest_pure_key(dominant)
             if pure is not None:
@@ -649,7 +664,8 @@ def slice_sheet(
             if suffix and suffix != ".png":
                 raise ValueError(f"--alpha requires .png output names, got {name!r}")
 
-    sheet = Image.open(sheet_path).convert("RGBA")
+    with Image.open(sheet_path) as source:
+        sheet = ImageOps.exif_transpose(source).convert("RGBA")
     sw, sh = sheet.size
     output_dir.mkdir(parents=True, exist_ok=True)
 
