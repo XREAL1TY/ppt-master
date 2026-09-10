@@ -1020,7 +1020,9 @@ class-average estimate, with the existing fixed advances for monospaced faces.
 
 - `measure` prints one `width<TAB>text` line per input, or a JSON array with
   `--json`.
-- `wrap` prints greedy word- or CJK-cluster-wrapped SVG text content; `--y`
+- `wrap` prints greedy word- or CJK-cluster-wrapped SVG text content; a CJK
+  line breaks after clause punctuation (`，。；：`) when that keeps at least
+  three quarters of the greedy line, otherwise at the greedy limit. `--y`
   includes the outer `<text>` element, and `--json` prints line metrics.
 - `box` prints a `data-pptx-bounds` attribute plus numeric `top` and `bottom`, or
   a JSON bounds object with `--json`.
@@ -1029,7 +1031,8 @@ class-average estimate, with the existing fixed advances for monospaced faces.
   `validation/text_calibration.json`, and prints a compact table or JSON. The
   estimator is additive across scripts, so a line mixing CJK with Latin words
   or digits is estimated as (CJK chars ÷ CJK rate + other chars ÷ Latin rate)
-  × 100; spaces and punctuation count as Latin, digits use the DIGITS rate.
+  × 100; spaces and ASCII punctuation count as Latin, fullwidth punctuation as
+  CJK, digits use the DIGITS rate.
   The rates are sample averages taken with the checker's own estimator
   (headroom included), while the checker measures each real line glyph by
   glyph: capital-heavy words, digits, and wide letters run wider than the Latin
@@ -1112,6 +1115,7 @@ Use this after `svg_quality_checker.py` passes, and only for chart types support
 
 ```bash
 python3 scripts/svg_position_calculator.py calc bar --data "A:185,B:142" --area "130,155,1200,480" --bar-width 120
+python3 scripts/svg_position_calculator.py calc bar --data "A:185,B:142" --area "130,155,1200,480" --gap-width 150   # native-ready: equal category slots, bar width = slot / (1 + gap_width/100)
 python3 scripts/svg_position_calculator.py calc line --data "0:50,10:80,20:120" --area "120,120,1200,600" --y-range "0,150"
 python3 scripts/svg_position_calculator.py calc pie --data "A:35,B:25,C:20" --center "420,400" --radius 200
 python3 scripts/svg_position_calculator.py calc grid --rows 2 --cols 3 --area "50,150,1230,670"
