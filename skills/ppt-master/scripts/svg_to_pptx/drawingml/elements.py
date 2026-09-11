@@ -1909,6 +1909,14 @@ def convert_polygon(elem: ET.Element, ctx: ConvertContext) -> ShapeResult | None
     fill = build_fill_xml(elem, ctx, fill_op)
     stroke = build_stroke_xml(elem, ctx, stroke_op)
 
+    effect = ''
+    filt_id = get_effective_filter_id(elem, ctx)
+    if filt_id and filt_id in ctx.defs:
+        effect = build_effect_xml(
+            ctx.defs[filt_id],
+            get_element_opacity(elem, ctx),
+        )
+
     shape_id = _claim_element_shape_id(elem, ctx)
     xfrm_attr = ''
     off_x = px_to_emu(min_x)
@@ -1931,7 +1939,7 @@ def convert_polygon(elem: ET.Element, ctx: ConvertContext) -> ShapeResult | None
             ctx,
             shape_id, f'Polygon {shape_id}',
             off_x, off_y, w_emu, h_emu,
-            geom, fill, stroke, xfrm_attr=xfrm_attr,
+            geom, fill, stroke, effect, xfrm_attr=xfrm_attr,
         ),
         bounds_emu=bounds_emu,
     )
@@ -2954,7 +2962,10 @@ def _build_run_properties_xml(
     spc_attr = _letter_spacing_to_drawingml_spc(letter_spacing_px)
     baseline_attr = f' baseline="{baseline_shift}"' if baseline_shift else ''
 
-    fonts = parse_font_family(ff) if ff else default_fonts
+    fonts = (
+        parse_font_family(ff, ctx.primary_language if ctx is not None else None)
+        if ff else default_fonts
+    )
     run_fonts = (
         {
             'latin': fixed_font_family,
@@ -3174,7 +3185,7 @@ def convert_text(elem: ET.Element, ctx: ConvertContext) -> ShapeResult | None:
     else:
         letter_spacing_px = 0.0
 
-    fonts = parse_font_family(font_family_str)
+    fonts = parse_font_family(font_family_str, ctx.primary_language)
 
     parent_attrs: dict[str, Any] = {
         'fill': fill_color,

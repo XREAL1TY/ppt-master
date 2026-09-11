@@ -1027,7 +1027,7 @@ class-average estimate, with the existing fixed advances for monospaced faces.
 - `box` prints a `data-pptx-bounds` attribute plus numeric `top` and `bottom`, or
   a JSON bounds object with `--json`.
 - `calibrate` measures fixed CJK and Latin samples for every typography role
-  from `spec_lock.md` or repeatable `--role NAME:FAMILY:SIZE` overrides, writes
+  from `spec_lock.md` or repeatable `--role NAME:FAMILY:SIZE[:bold]` overrides, writes
   `validation/text_calibration.json`, and prints a compact table or JSON. The
   estimator is additive across scripts, so a line mixing CJK with Latin words
   or digits is estimated as (CJK chars ÷ CJK rate + other chars ÷ Latin rate)
@@ -1037,9 +1037,12 @@ class-average estimate, with the existing fixed advances for monospaced faces.
   (headroom included), while the checker measures each real line glyph by
   glyph: capital-heavy words, digits, and wide letters run wider than the Latin
   rate, so the table also prints CAPS and DIGITS rates, and a zone should stay
-  about 5% below its bounds width. `--outline` adds the longest §IX planned
+  about 5% below its bounds width. The rates ignore `letter-spacing`, so a
+  tracked role or a display-size line is sized per string with `measure
+  --letter-spacing`. `--outline` adds the longest §IX planned
   line per role — the planned wording only; a line rewritten while authoring
-  is re-estimated with the rates. The checker's overflow
+  is re-estimated with the rates. Quick projects have no Design Spec, so
+  the column stays empty there and the table says so. The checker's overflow
   diagnostic prints that line's average px per character, which is not a
   reusable rate. A lock role without its own
   `<role>_family` resolves to `title_family` when the role name contains
@@ -1050,6 +1053,7 @@ class-average estimate, with the existing fixed advances for monospaced faces.
 
 ```bash
 python3 scripts/text_measure.py measure "Editable DrawingML text" --size 22
+python3 scripts/text_measure.py measure --size 22 -- "34.5%" "-1.3%"   # values that start with "-" go after --; a paragraph over 255 characters goes through --stdin
 python3 scripts/text_measure.py wrap "Editable DrawingML text stays measurable" --size 22 --max-width 240 --x 96 --dy 30 --y 140
 python3 scripts/text_measure.py box "First line" "Second line" --x 96 --y 140 --size 22 --lines 2 --dy 30
 python3 scripts/text_measure.py calibrate projects/example --outline

@@ -347,10 +347,10 @@ def _major_gridlines_xml(color: str | None) -> str:
     return f'<c:majorGridlines>{_chart_line_sp_pr_xml(color, width=6350)}</c:majorGridlines>'
 
 
-def _font_face_xml(font_face: str | None) -> str:
+def _font_face_xml(font_face: str | None, language: str | None = None) -> str:
     if not font_face:
         return ""
-    fonts = parse_font_family(font_face)
+    fonts = parse_font_family(font_face, language)
     latin_font = _xml_escape(fonts["latin"])
     ea_font = _xml_escape(fonts["ea"])
     return (
@@ -378,7 +378,7 @@ def _chart_tx_pr_xml(
     return (
         f"<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr{rtl_attr}>"
         f'<a:defRPr lang="{resolved_language}" sz="{font_size}"{bold_attr}>'
-        f'{fill_xml}{_font_face_xml(font_face)}</a:defRPr>'
+        f'{fill_xml}{_font_face_xml(font_face, language)}</a:defRPr>'
         f'</a:pPr><a:endParaRPr lang="{resolved_language}"/></a:p></c:txPr>'
     )
 
@@ -472,7 +472,7 @@ def _axis_title_xml(
         "<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/>"
         f'<a:p><a:pPr{rtl_attr}/><a:r><a:rPr lang="{lang}" '
         f'sz="{_chart_text_entry_font_size(item, font_size)}">'
-        f"{fill_xml}{_font_face_xml(_chart_text_entry_font_face(item, font_face))}"
+        f"{fill_xml}{_font_face_xml(_chart_text_entry_font_face(item, font_face), primary_language)}"
         f"{run_rtl}</a:rPr>"
         f"<a:t>{_xml_escape(text)}</a:t></a:r></a:p>"
         "</c:rich></c:tx><c:layout/><c:overlay val=\"0\"/></c:title>"
@@ -1174,24 +1174,30 @@ def _chart_projection_text_variants(value: Any) -> set[str]:
     return variants
 
 
-_NUMBER_FORMAT_RE = re.compile(r"^(#,##|#|0)?(0*)(?:\.(0+))?(%?)$")
+_NUMBER_FORMAT_RE = re.compile(
+    r'^(?:"(?P<prefix>[^"]*)")?(#,##|#|0)?(0*)(?:\.(0+))?(%?)(?:"(?P<suffix>[^"]*)")?$'
+)
 
 
 def _format_number_like_excel(number: float, number_format: str) -> str | None:
     """Render ``number`` the way PowerPoint shows a plain Excel format code.
 
     Covers the codes a chart payload realistically writes — ``0``, ``0.0``,
-    ``0.00``, ``#,##0``, ``#,##0.0``, and their ``%`` forms. Anything else
-    returns ``None`` so the caller keeps only the literal variants.
+    ``0.00``, ``#,##0``, ``#,##0.0``, their ``%`` forms, and a quoted literal
+    prefix or suffix such as ``"$"#,##0`` or ``0.0"%"`` (a literal percent
+    sign does not scale the value). Anything else returns ``None`` so the
+    caller keeps only the literal variants.
     """
     match = _NUMBER_FORMAT_RE.match(number_format.strip())
     if match is None:
         return None
-    grouping, _integers, decimals, percent = match.groups()
+    prefix = match.group("prefix") or ""
+    suffix = match.group("suffix") or ""
+    grouping, _integers, decimals, percent = match.groups()[1:5]
     value = number * 100 if percent else number
     digits = len(decimals or "")
     text = f"{value:,.{digits}f}" if grouping == "#,##" else f"{value:.{digits}f}"
-    return f"{text}%" if percent else text
+    return f"{prefix}{text}{'%' if percent else ''}{suffix}"
 
 
 def _chart_number_formats(payload: dict[str, Any]) -> list[str]:
@@ -1418,7 +1424,7 @@ def _text_box_xml(
     lang = detect_text_lang(text, ctx.primary_language)
     run_rtl = '<a:rtl val="1"/>' if text_has_rtl_characters(text) else ''
     run_properties_xml = (
-        f'{fill_xml}{_font_face_xml(font_face)}'
+        f'{fill_xml}{_font_face_xml(font_face, ctx.primary_language)}'
         f'{run_rtl}'
     )
     rtl_attr = (
