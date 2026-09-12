@@ -71,7 +71,7 @@ from pptx_opc_validation import (
 from pptx_workspace import WorkspaceResourceSpec
 from pptx_ooxml.clone import clone_presentation_slides
 from pptx_ooxml.package import prune_unreferenced_directory_parts
-from language_tags import normalize_language_tag
+from language_tags import language_uses_rtl, office_language_tag
 from hyperlink_contract import (
     HYPERLINK_REL_TYPE,
     trigger_shape_hyperlink_errors,
@@ -97,7 +97,7 @@ from ..drawingml.theme_fonts import (
     apply_master_text_style_spec,
     apply_theme_font_spec,
 )
-from ..drawingml.utils import EMU_PER_PX
+from ..drawingml.utils import EMU_PER_PX, detect_text_lang
 from ..semantic_markers import (
     chrome_token_from_markers,
     page_layout_name_from_svg,
@@ -3004,6 +3004,9 @@ def _unwrap_placeholder_carrier(
         state.shapes.pop(wrapper_id, None)
     if carrier_id:
         state.shapes[carrier_id] = carrier
+    if wrapper_id and carrier_id:
+        # An animation that names the slot group now targets its carrier.
+        _rewrite_roundtrip_timing_shape_ids(state.root, {wrapper_id: carrier_id})
     return carrier
 
 
@@ -3284,6 +3287,7 @@ def _move_template_static_shape(
     target_path: Path,
     target_rels_path: Path,
     slide_size_emu: tuple[int, int],
+    public_slide_count: int | None = None,
 ) -> str | None:
     shapes = [_template_shape_for_item(state, item) for state in states]
     if any(shape is None for shape in shapes):
@@ -3306,12 +3310,21 @@ def _move_template_static_shape(
                 f"{item.element_id!r} must compile to one exact p:bg payload"
             )
         return background_xml
+    # Internal Layout carriers compile unused prototypes as authored; their
+    # copy of a master atom leaves with the carrier slide, so the published
+    # pages alone decide the atom (a re-skinned rule must not be refused
+    # because an unused prototype still carries the original paint).
+    reference = [
+        (state, shape)
+        for state, shape in zip(states, resolved_shapes)
+        if public_slide_count is None or state.spec.slide_num <= public_slide_count
+    ] or list(zip(states, resolved_shapes))
     canonical = {
         _canonical_shape_xml(shape, state.rels)
-        for state, shape in zip(states, resolved_shapes)
+        for state, shape in reference
     }
     if len(canonical) != 1:
-        slide_names = ", ".join(state.spec.svg_path.name for state in states)
+        slide_names = ", ".join(state.spec.svg_path.name for state, _shape in reference)
         raise TemplateStructureError(
             f"Explicit structure element {item.element_id!r} differs across slides: "
             f"{slide_names}"
@@ -3329,8 +3342,7 @@ def _move_template_static_shape(
                 "uses a relationship that cannot move to a template part"
             )
 
-    prototype_state = states[0]
-    prototype_shape = resolved_shapes[0]
+    prototype_state, prototype_shape = reference[0]
     target_shape = _copy_shape_relationships_to_part(
         prototype_shape,
         prototype_state.rels,
@@ -3923,6 +3935,7 @@ def _apply_explicit_layout_structure(
     theme_font_spec: ThemeFontSpec | None,
     *,
     use_layout_placeholder_frames: bool = False,
+    public_slide_count: int | None = None,
     verbose: bool = False,
 ) -> tuple[
     dict[str, str | None],
@@ -3962,6 +3975,7 @@ def _apply_explicit_layout_structure(
                 master_path,
                 master_rels_path,
                 slide_size_emu,
+                public_slide_count=public_slide_count,
             )
             if background_xml is not None:
                 expected_backgrounds[master_part] = background_xml
@@ -5140,14 +5154,19 @@ def _relax_output_permissions(output_path: Path) -> list[str]:
         result = subprocess.run(
             ['icacls', str(output_path), '/grant', '*S-1-5-32-545:R'],
             capture_output=True,
-            text=True,
             check=False,
         )
     except OSError as exc:
         warnings.append(f"icacls skipped for {output_path}: {exc}")
     else:
         if result.returncode != 0:
-            message = (result.stderr or result.stdout or '').strip()
+            # icacls writes in the console OEM code page, so decode lazily
+            # and leniently; text mode would decode under the interpreter's
+            # encoding (UTF-8 in UTF-8 mode) and raise inside the reader
+            # thread on non-ASCII bytes.
+            message = (result.stderr or result.stdout or b'').decode(
+                'oem', errors='replace',
+            ).strip()
             details = f": {message}" if message else ''
             warnings.append(f"icacls failed for {output_path}{details}")
 
@@ -5999,6 +6018,68 @@ def _prerender_legacy_pngs(
     return results
 
 
+def _rtl_text_levels(xml: str) -> str:
+    """Flip template text-level defaults (``rtl="0"``) to right-to-left."""
+    def flip(match: re.Match[str]) -> str:
+        tag = match.group(0).replace('rtl="0"', 'rtl="1"')
+        return tag.replace('algn="l"', 'algn="r"')
+
+    return re.sub(r'<a:(?:lvl\dpPr|pPr)\b[^>]*\brtl="0"[^>]*>', flip, xml)
+
+
+def _apply_template_text_language(extract_dir: Path, language: str) -> None:
+    """Tag template defaults with the deck language and authored runs by script.
+
+    Covers the presentation default text style (new text boxes) and master and
+    layout placeholders, so proofing follows the deck rather than en-US; a
+    right-to-left deck also gets right-to-left, right-aligned default levels.
+    """
+    rtl = language_uses_rtl(language)
+    ppt_dir = extract_dir / "ppt"
+    parts = [ppt_dir / "presentation.xml"]
+    parts += sorted((ppt_dir / "slideMasters").glob("slideMaster*.xml"))
+    parts += sorted((ppt_dir / "slideLayouts").glob("slideLayout*.xml"))
+    for part in parts:
+        if not part.is_file():
+            continue
+        xml = part.read_text(encoding="utf-8")
+        root = ET.fromstring(xml)
+        language_updates = {
+            props: language
+            for tag in ("defRPr", "endParaRPr")
+            for props in root.iter(f"{{{DML_NS}}}{tag}")
+        }
+        for tag in ("r", "fld"):
+            for run in root.iter(f"{{{DML_NS}}}{tag}"):
+                text = run.find(f"{{{DML_NS}}}t")
+                if text is None or not (text.text or "").strip():
+                    continue
+                props = run.find(f"{{{DML_NS}}}rPr")
+                if props is None:
+                    props = ET.Element(f"{{{DML_NS}}}rPr")
+                    run.insert(0, props)
+                language_updates[props] = detect_text_lang(text.text, language)
+        for shape in root.iter(f"{{{PML_NS}}}sp"):
+            placeholder = shape.find(
+                f"{{{PML_NS}}}nvSpPr/{{{PML_NS}}}nvPr/{{{PML_NS}}}ph"
+            )
+            if placeholder is not None and not any(
+                (text.text or "").strip() for text in shape.iter(f"{{{DML_NS}}}t")
+            ):
+                for props in shape.iter(f"{{{DML_NS}}}rPr"):
+                    language_updates[props] = language
+        changed = False
+        for props, text_language in language_updates.items():
+            if props.get("lang") != text_language:
+                props.set("lang", text_language)
+                changed = True
+        updated = serialize_source_xml(root, xml).decode("utf-8") if changed else xml
+        if rtl:
+            updated = _rtl_text_levels(updated)
+        if updated != xml:
+            part.write_text(updated, encoding="utf-8")
+
+
 def _presentation_format(width: float, height: float) -> str:
     """Map the slide aspect ratio to PowerPoint's PresentationFormat label.
     Non-standard ratios (square, portrait, banner crops) report 'Custom'.
@@ -6548,7 +6629,7 @@ def create_pptx_with_native_svg(
         )
     text_flow = resolve_text_flow(text_flow, merge_paragraphs)
     if primary_language is not None:
-        primary_language = normalize_language_tag(primary_language)
+        primary_language = office_language_tag(primary_language)
     public_svg_files = list(svg_files)
     passthrough_slides = set(roundtrip_passthrough_slides or set())
     slide_patches = dict(roundtrip_slide_patches or {})
@@ -7947,6 +8028,7 @@ def create_pptx_with_native_svg(
                 conversion_trace if conversion_trace is not None else structure_trace,
                 active_theme_font_spec,
                 use_layout_placeholder_frames=use_layout_placeholder_frames,
+                public_slide_count=public_slide_count,
                 verbose=verbose,
             )
             if source_theme_xml_by_master is not None:
@@ -8167,6 +8249,9 @@ def create_pptx_with_native_svg(
                 'PPTX package contains dangling internal relationship targets; '
                 'PowerPoint will report the file as corrupt:\n' + details
             )
+
+        if primary_language is not None and not roundtrip_export:
+            _apply_template_text_language(extract_dir, primary_language)
 
         # Replace the python-pptx base-template metadata (stale "Steve Canny"
         # author, 2013 dates, "generated using python-pptx", Slides=0) with
