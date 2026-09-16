@@ -90,6 +90,8 @@ def _default_json_report_path(
     checker: SVGQualityChecker,
     target: str,
     stage: str,
+    *,
+    roundtrip: bool = False,
 ) -> Path:
     """Choose a stage-specific report path without overwriting the final gate."""
     target_path = Path(target)
@@ -100,6 +102,8 @@ def _default_json_report_path(
         "early": "svg_quality_early_report.json",
         "page": "svg_quality_page_report.json",
     }[stage]
+    if roundtrip:
+        return target_path / "validation" / report_name
     if (
         (project_path / "svg_output").is_dir()
         or (project_path / "design_spec.md").is_file()
@@ -192,7 +196,7 @@ def main() -> None:
             sys.exit(1)
         try:
             print(json.dumps(slot_capacity_report(files), ensure_ascii=False, indent=2))
-        except (OSError, ET.ParseError) as exc:
+        except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as exc:
             print(f"[ERROR] Cannot read template slots: {exc}", file=sys.stderr)
             sys.exit(1)
         sys.exit(0)
@@ -334,7 +338,9 @@ def main() -> None:
                 sys.exit(1)
             json_output = Path(sys.argv[idx + 1])
         else:
-            json_output = _default_json_report_path(checker, target, stage)
+            json_output = _default_json_report_path(
+                checker, target, stage, roundtrip=roundtrip,
+            )
         checker.export_json_report(
             str(json_output),
             target=target,

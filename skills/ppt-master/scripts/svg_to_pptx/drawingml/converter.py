@@ -36,6 +36,7 @@ from resource_paths import icon_dir_for_project
 from svg_authoring_view import (
     SEMANTIC_OBJECT_ATTRIBUTE,
     SEMANTIC_SHAPE_KIND,
+    semantic_shape_text_component,
 )
 from svg_compatibility import normalize_single_child_group_filters
 
@@ -746,33 +747,20 @@ def _semantic_shape_text_body(
     shape: ET.Element,
     ctx: ConvertContext,
 ) -> str | None:
-    texts = [
-        child
-        for child in shape
-        if child.tag.replace(f'{{{SVG_NS}}}', '') == 'text'
-    ]
-    nested_texts = [
-        child
-        for child in shape.iter()
-        if child.tag.replace(f'{{{SVG_NS}}}', '') == 'text'
-    ]
-    if nested_texts != texts:
-        raise SvgNativeConversionError(
-            'Semantic shape text must be one direct SVG text component'
-        )
-    if not texts:
+    metadata = _txbody_metadata(shape)
+    if metadata is not None:
+        preserved = _decode_unchanged_txbody(shape, metadata)
+        if preserved is not None:
+            return preserved[0]
+    try:
+        component = semantic_shape_text_component(shape)
+    except ValueError as exc:
+        raise SvgNativeConversionError(str(exc)) from exc
+    if component is None:
         return None
-    if len(texts) != 1:
-        raise SvgNativeConversionError(
-            'Semantic shape requires at most one paragraph-based text component'
-        )
     frame = shape.get('data-pptx-frame')
-    if frame is None:
-        raise SvgNativeConversionError(
-            'Semantic shape text requires data-pptx-frame on its owner'
-        )
 
-    text = copy.deepcopy(texts[0])
+    text = copy.deepcopy(component)
     text.set('data-pptx-frame', frame)
     for name in (
         'data-pptx-shape-id',
@@ -829,6 +817,10 @@ def _convert_semantic_shape(
         'data-pptx-shape-name',
         'data-pptx-shape-scope',
         'data-name',
+        'data-ph-type',
+        'data-pptx-placeholder-index',
+        'data-pptx-placeholder-size',
+        'data-pptx-placeholder-orientation',
     ):
         if carrier.get(name) is None and shape.get(name) is not None:
             carrier.set(name, str(shape.get(name)))
@@ -2375,7 +2367,6 @@ def convert_svg_to_slide_shapes(
         text_font_sizes=text_font_sizes,
         text_letter_spacings=text_letter_spacings,
     )
-
     shapes: list[str] = []
     converted = 0
     skipped = 0

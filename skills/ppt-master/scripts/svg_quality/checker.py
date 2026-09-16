@@ -33,6 +33,11 @@ from pptx_workspace import (
 )
 from slide_roster import discover_slide_svgs
 from svg_authoring_contract import canonical_authoring_errors
+from svg_authoring_view import (
+    SEMANTIC_OBJECT_ATTRIBUTE,
+    SEMANTIC_SHAPE_KIND,
+    semantic_shape_text_component,
+)
 
 from . import svg_contracts
 from .xml_support import (
@@ -1175,6 +1180,7 @@ class SVGQualityChecker:
         self.quick_generate = quick_generate
         self.canonical_authoring = canonical_authoring
         self.results = []
+        self._roundtrip_source_fingerprint: Dict[str, object] | None = None
         self.summary = {
             'total': 0,
             'passed': 0,
@@ -1399,6 +1405,7 @@ class SVGQualityChecker:
 
                 # 5. Check text wrapping methods
                 self._check_text_elements(content, root, result)
+                self._check_semantic_shape_text(root, result)
 
                 # 5b. Validate native hyperlink targets and carrier structure.
                 self._check_hyperlinks(root, result)
@@ -1507,6 +1514,7 @@ class SVGQualityChecker:
                     return
         except (OSError, ValueError, TypeError):
             return
+        result['info']['mirror_source_unchanged'] = True
         source_import = manifest.get('source_import')
         if isinstance(source_import, dict):
             self._source_import_summary = source_import
@@ -1547,6 +1555,7 @@ class SVGQualityChecker:
             _load_documents,
             _load_page_plan,
             _parse_svg,
+            roundtrip_source_fingerprint,
         )
 
         project_path = Path(workspace).resolve()
@@ -1568,6 +1577,7 @@ class SVGQualityChecker:
             return []
 
         try:
+            self._roundtrip_source_fingerprint = roundtrip_source_fingerprint(project_path)
             source_root, source_proxy_dir, documents, _, _ = _load_documents(
                 project_path,
                 authoring_dir,
@@ -1675,6 +1685,9 @@ class SVGQualityChecker:
                     )
                 )
                 result['info']['edited_text_elements'] = len(included_text_ids)
+                self._check_semantic_shape_text(
+                    root, result, included_text_ids=included_text_ids,
+                )
                 if included_text_ids:
                     scoped_content = self._roundtrip_text_scope_content(
                         root,
@@ -1714,6 +1727,27 @@ class SVGQualityChecker:
             result['errors'].append(f"Failed to read file: {exc}")
             result['passed'] = False
         return self._record_result(result)
+
+    @staticmethod
+    def _check_semantic_shape_text(
+        root: ET.Element,
+        result: Dict,
+        *,
+        included_text_ids: set[int] | None = None,
+    ) -> None:
+        """Report the exporter's semantic-shape text contract before conversion."""
+        parents = {id(child): parent for parent in root.iter() for child in parent}
+        for shape in root.iter(f'{{{SVG_NS}}}g'):
+            if shape.get(SEMANTIC_OBJECT_ATTRIBUTE) != SEMANTIC_SHAPE_KIND:
+                continue
+            if _svg_hidden_reason is not None and _svg_hidden_reason(
+                shape, parents, preserve_native_carriers=True,
+            ) is not None:
+                continue
+            try:
+                semantic_shape_text_component(shape, included_text_ids=included_text_ids)
+            except ValueError as exc:
+                result['errors'].append(f"{_element_label(shape)}: {exc}")
 
     @staticmethod
     def _roundtrip_text_diff_ids(
@@ -1794,6 +1828,8 @@ class SVGQualityChecker:
                             current_assets,
                             baseline_assets,
                             changed_definition_ids=changed_definition_ids,
+                            current_root=root,
+                            baseline_root=baseline_root,
                         )
                     )
                     unchanged_by_owner[owner_key] = unchanged
@@ -4520,10 +4556,15 @@ class SVGQualityChecker:
             if self._is_hidden_element(text_element, parent_by_id):
                 continue
             visible_text = ''.join(text_element.itertext())
-            if (
-                not visible_text.strip()
-                or ('{{' in visible_text and '}}' in visible_text)
-            ):
+            marker_text = '{{' in visible_text and '}}' in visible_text
+            slot = parent_by_id.get(id(text_element))
+            template_carrier = (
+                self.template_mode
+                and text_element.get('data-pptx-carrier') == 'true'
+                and slot is not None
+                and slot.get('data-pptx-placeholder') is not None
+            )
+            if not visible_text.strip() or (marker_text and not template_carrier):
                 continue
             estimated = self._estimated_text_bounds(
                 text_element,
@@ -4532,11 +4573,19 @@ class SVGQualityChecker:
                 letter_spacings,
                 include_headroom=True,
             )
+            if estimated is not None and marker_text:
+                # A token has no content-width contract, but its carrier still
+                # has the same baseline/line-box contract as a generated page.
+                resolved_slot = self._resolved_root_module_bounds(slot)
+                if resolved_slot is not None:
+                    boundary = resolved_slot[1]
+                    estimated = (boundary[0], estimated[1], boundary[2], estimated[3])
             if estimated is not None:
                 estimated_by_id[id(text_element)] = estimated
 
             if (
-                canvas is None
+                marker_text
+                or canvas is None
                 or self._has_zero_opacity(text_element, parent_by_id)
             ):
                 continue
@@ -6290,6 +6339,8 @@ class SVGQualityChecker:
             if local_name in definition_containers:
                 return
             if local_name == 'text':
+                if element.get('data-pptx-layer') in {'master', 'layout'}:
+                    return
                 counts.update(collect_text_object_sizes(element))
                 return
             for child in element:
@@ -9445,6 +9496,10 @@ class SVGQualityChecker:
     def _print_provenance_category_summary(self):
         """Print compact JSON-equivalent counts for token-safe gate handling."""
         categories = self._provenance_categories()
+        unchanged_mirror = self.template_mode and self.results and all(
+            result.get('info', {}).get('mirror_source_unchanged')
+            for result in self.results
+        )
         rows = (
             (
                 'blocking',
@@ -9454,7 +9509,8 @@ class SVGQualityChecker:
             (
                 'introduced',
                 len(categories['introduced']),
-                'advisory; new or changed',
+                ('advisory; mirror: source-authored spellings, workspace unmodified'
+                 if unchanged_mirror else 'advisory; new or changed'),
             ),
             (
                 'inherited',
@@ -9825,7 +9881,11 @@ class SVGQualityChecker:
             'schema': 'ppt-master.svg-quality-report.v1',
             'stage': stage,
             'target': str(Path(target).resolve()),
-            'source_fingerprint': _quality_source_fingerprint(self.results),
+            'source_fingerprint': (
+                self._roundtrip_source_fingerprint
+                if self._roundtrip_source_fingerprint is not None
+                else _quality_source_fingerprint(self.results)
+            ),
             'summary': dict(self.summary),
             'issue_types': dict(sorted(self.issue_types.items())),
             'categories': {
