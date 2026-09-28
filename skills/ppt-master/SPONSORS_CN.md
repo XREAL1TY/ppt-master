@@ -18,7 +18,7 @@ PPT Master 始终免费开源。以下赞助方共同支持项目的持续维护
 
 感谢 [Kimi](https://www.kimi.com/code/?aff=ppt-master) 赞助 PPT Master。[Kimi K3](https://platform.kimi.com/docs/guide/kimi-k3-quickstart) 是全球首个开源 3T 级模型，拥有原生视觉能力与 100 万 Token 上下文。搭配 PPT Master，K3 可以理解 PDF、DOCX、网页等原始资料，梳理演示逻辑并生成原生可编辑的 PPTX。
 
-**立即体验 [Kimi Code](https://www.kimi.com/code/?aff=ppt-master)，或通过 Kimi 开放平台（[中文站](https://platform.kimi.com?aff=ppt-master)｜[Global](https://platform.kimi.ai?aff=ppt-master)）使用 API。**
+**立即体验 [Kimi Code](https://www.kimi.com/code/?aff=ppt-master)（[中文站](https://www.kimi.com/code/?aff=ppt-master)｜[Global](https://www.kimi.ai/code/?aff=ppt-master)），或通过 Kimi 开放平台（[中文站](https://platform.kimi.com?aff=ppt-master)｜[Global](https://platform.kimi.ai?aff=ppt-master)）使用 API。**
 
 ## 模型接入合作伙伴
 
@@ -39,12 +39,6 @@ PPT Master 始终免费开源。以下赞助方共同支持项目的持续维护
 <a href="https://runapi.host/register?aff=WMLJ"><img src="https://raw.githubusercontent.com/hugohe3/ppt-master/main/docs/assets/sponsors/runapi.png" alt="RunAPI" width="150"></a>
 
 [RunAPI](https://runapi.host/register?aff=WMLJ) 通过一个 API Key 提供 OpenAI、Claude、Gemini、DeepSeek、Grok 等 150+ 主流模型。通过专属链接注册并联系管理员，即可领取 **¥7 免费额度**。
-
-### 优云智算
-
-<a href="https://www.compshare.cn/coding-plan?ytag=GPU_YY-git_pptmaster0624"><img src="https://raw.githubusercontent.com/hugohe3/ppt-master/main/docs/assets/sponsors/youyun.png" alt="优云智算" width="150"></a>
-
-[优云智算](https://www.compshare.cn/coding-plan?ytag=GPU_YY-git_pptmaster0624) 是 UCloud 旗下 AI 云平台，提供国内外模型 API、CodingPlan 套餐、企业级并发、技术支持和开票服务。通过专属链接注册，最高可获得 **¥10 免费体验金**。平台还提供无需本地部署的 PPT Master Agent。
 
 ### APIMart
 
