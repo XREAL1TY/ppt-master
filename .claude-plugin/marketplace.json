@@ -6,8 +6,8 @@
     "url": "https://github.com/XREAL1TY"
   },
   "metadata": {
-    "description": "PPT Master skill — AI generates natively editable PPTX from any document (fork with uv venv support)",
-    "version": "6.7.3"
+"description": "PPT Master skill — AI generates natively editable PPTX from any document (fork with uv venv support)",
+    "version": "6.8.0"
   },
   "plugins": [
     {

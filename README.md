@@ -165,7 +165,17 @@ Knowing how to use Python and AI agents will matter more and more, and this proj
 
 ### 1. Prerequisites
 
-**You only need Python and uv.** `uv` creates an isolated virtual environment so project dependencies don't touch your system Python. Install uv: `brew install uv` (macOS) / `curl -LsSf https://astral.sh/uv/install.sh | sh` (Linux).
+**You only need Python (3.10–3.14) and uv.** `uv` creates an isolated virtual environment so project dependencies don't touch your system Python. Install uv: `brew install uv` (macOS) / `curl -LsSf https://astral.sh/uv/install.sh | sh` (Linux).
+
+<details>
+<summary><strong>Windows</strong> — see the dedicated <a href="./docs/windows-installation.md">step-by-step guide</a> ⚠️</summary>
+
+Windows requires a few extra steps (PATH setup, execution policy, etc.). We wrote a **step-by-step guide** specifically for Windows users:
+
+**📖 [Windows Installation Guide](./docs/windows-installation.md)** — from zero to a working presentation in 10 minutes.
+
+Quick version: download Python from [python.org](https://www.python.org/downloads/) → **check "Add to PATH"** during install → done; dependencies are installed in Step 3.
+</details>
 
 <details>
 <summary><strong>macOS / Linux</strong> — install and go</summary>

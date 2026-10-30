@@ -165,7 +165,17 @@
 
 ### 1. 前置条件
 
-**只需装 Python 和 uv 即可。** `uv` 创建隔离的虚拟环境，避免项目依赖污染系统 Python。安装 uv：`brew install uv`（macOS）/ `curl -LsSf https://astral.sh/uv/install.sh | sh`（Linux）。
+**只需装 Python（3.10–3.14）和 uv 即可。** `uv` 创建隔离的虚拟环境，避免项目依赖污染系统 Python。安装 uv：`brew install uv`（macOS）/ `curl -LsSf https://astral.sh/uv/install.sh | sh`（Linux）。
+
+<details>
+<summary><strong>Windows</strong> — 请看专门的<a href="./docs/zh/windows-installation.md">手把手安装指南</a> ⚠️</summary>
+
+Windows 需要一些额外步骤（PATH 设置、执行策略等）。我们为 Windows 用户写了一份**手把手安装指南**：
+
+**📖 [Windows 安装指南](./docs/zh/windows-installation.md)** — 从零到跑通第一份 PPT，10 分钟搞定。
+
+简要流程：从 [python.org](https://www.python.org/downloads/) 下载 Python → **安装时勾选 "Add to PATH"** → 完成，依赖安装见第 3 步。
+</details>
 
 <details>
 <summary><strong>macOS / Linux</strong> — 安装即用</summary>
