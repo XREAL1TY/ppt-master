@@ -259,7 +259,7 @@ uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requireme
 
 **方式三：下载 ZIP**（无需 Git）
 
-[下载 ZIP](https://github.com/XREAL1TY/ppt-master/archive/refs/heads/main.zip)，解压后执行 `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`。ZIP 目录无 Git 历史，无法自动 pull；更新时重新下载最新 ZIP 并重跑 uv 命令。如果完整仓库下载体积太大，可以从 [Releases](https://github.com/XREAL1TY/ppt-master/releases) 下载纯技能包 `ppt-master-skill-*.zip`（约 56 MB，功能完整）。
+[下载 ZIP](https://github.com/XREAL1TY/ppt-master/archive/refs/heads/main.zip)，解压后执行 `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`。ZIP 目录无 Git 历史，无法自动 pull；更新时重新下载最新 ZIP 并重跑 uv 命令。如果完整仓库下载体积太大，可以从 [Releases](https://github.com/XREAL1TY/ppt-master/releases) 下载纯技能包 `ppt-master-skill-*.zip`（约 23 MB，功能完整）。
 
 > **方式四 — Claude Code 插件**：`/plugin marketplace add XREAL1TY/ppt-master` 然后 `/plugin install ppt-master@ppt-master`。从插件安装路径创建 venv（将 `*` 替换为已安装的版本号）：`cd ~/.claude/plugins/cache/ppt-master/ppt-master/*/skills/ppt-master && uv venv .venv && uv pip install -r requirements.txt`。插件更新后 `.venv` 会丢失，需重跑。
 

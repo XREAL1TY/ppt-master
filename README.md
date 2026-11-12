@@ -259,7 +259,7 @@ To update later: `skills/ppt-master/.venv/bin/python3 skills/ppt-master/scripts/
 
 **Option 3: Download ZIP** (no Git required)
 
-[Download ZIP](https://github.com/XREAL1TY/ppt-master/archive/refs/heads/main.zip), unzip, then `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`. ZIP folders cannot `git pull`; to update, download the latest ZIP and re-run the uv commands. If the full download is too large, grab the skill-only package `ppt-master-skill-*.zip` (~56 MB, fully functional) from the [Releases](https://github.com/XREAL1TY/ppt-master/releases) page instead.
+[Download ZIP](https://github.com/XREAL1TY/ppt-master/archive/refs/heads/main.zip), unzip, then `uv venv skills/ppt-master/.venv && uv pip install -r skills/ppt-master/requirements.txt`. ZIP folders cannot `git pull`; to update, download the latest ZIP and re-run the uv commands. If the full download is too large, grab the skill-only package `ppt-master-skill-*.zip` (~23 MB, fully functional) from the [Releases](https://github.com/XREAL1TY/ppt-master/releases) page instead.
 
 > **Option 4 — Claude Code plugin**: `/plugin marketplace add XREAL1TY/ppt-master` then `/plugin install ppt-master@ppt-master`. Create the venv from the plugin install path (replace `*` with the installed version): `cd ~/.claude/plugins/cache/ppt-master/ppt-master/*/skills/ppt-master && uv venv .venv && uv pip install -r requirements.txt`. After plugin update, `.venv` is lost — re-run.
 
