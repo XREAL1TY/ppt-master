@@ -348,11 +348,11 @@ def sync_python_dependencies() -> None:
         )
 
     if not VENV_DIR.exists():
-        print(".venv not found. Creating virtual environment with uv...")
+        print_status(".venv not found. Creating virtual environment with uv...")
         run_command(["uv", "venv", str(VENV_DIR)], cwd=SKILL_DIR)
 
     python_bin = str(VENV_DIR / "bin" / "python3")
-    print("Requirements include tree changed. Syncing Python dependencies with uv...")
+    print_status("Requirements include tree changed. Syncing Python dependencies with uv...")
     result = run_command(
         ["uv", "pip", "install", "-r", str(REQUIREMENTS_FILE), "--python", python_bin],
         cwd=SKILL_DIR,
@@ -391,7 +391,7 @@ def main(argv: list[str] | None = None) -> int:
             print_status(f"Updated from {before_head[:7]} to {after_head[:7]}.")
 
         if args.skip_deps:
-            print("Skipped Python dependency sync (--skip-deps).")
+            print_status("Skipped Python dependency sync (--skip-deps).")
         elif before_requirements != after_requirements:
             sync_python_dependencies()
         else:
