@@ -58,7 +58,7 @@ PPT Master 可以在任何能读取文件和执行命令、支持 Agent 的 AI �
 | 安装方式 | 更新方式 |
 |---|---|
 | Git clone | 在 `ppt-master` 目录运行 `python3 skills/ppt-master/scripts/update_repo.py` |
-| Download ZIP | 重新下载最新版 ZIP，解压到新目录；把旧目录里的 `.env` 和 `projects/` 复制过去；再运行 `pip install -r requirements.txt` |
+| Download ZIP | 重新下载最新版 ZIP，解压到新目录；把旧目录里的 `.env`、`projects/` 和 `skills/ppt-master/templates/local/`（如存在）复制到相同位置；再运行 `pip install -r requirements.txt` |
 | Skill marketplace | 用对应的 marketplace / skills 工具重新安装或更新 |
 
 长期使用建议用 Git clone。ZIP 适合快速体验，但没有 Git 历史，不能自动 `git pull`。
@@ -266,11 +266,9 @@ python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-t
 
 ## Q: 推荐用什么 AI 模型？
 
-**Claude**（Opus / Sonnet）是推荐且测试最充分的模型。SVG 排版本质上是在绝对坐标系中做精确的数学计算（字号 x 字数 x 容器宽度），Claude 在这方面表现明显优于其他模型。
+推荐使用 **[Kimi K3.1](https://www.kimi.com/code/?aff=ppt-master)** 或 **Gemini**（搭配 ~100 万 token 大上下文窗口）驱动工作流。SVG 排版需要在绝对坐标系中完成精确的几何与字号度量计算（字号 × 字数 × 容器宽度），同时把前序页面留在同一上下文里以保持整份演示文稿的视觉一致性。
 
-**GPT 系列**早期版本排版问题较多——文字超出容器、元素错位、坐标计算失误。较新的版本（如 GPT-5.5）在这方面已有明显进步，实际效果可以接受；如果遇到问题，可以告知 AI 修正具体页面。
-
-其他模型（Gemini、GLM、MiniMax 等）效果参差不齐。总体来说，前端/视觉能力越强的模型，生成效果越好。
+其他旗舰模型（如 **GPT**、**Claude** 等）同样可以驱动流程。较早期或较小参数的模型更容易出现文字溢出容器、元素错位或坐标偏差；遇到单页排版问题时，可以告知 AI 修正对应页面，或切换至更强的模型。
 
 ## Q: 有人说 PPT Master "只是个玩具"——这个评价准确吗？
 
@@ -278,12 +276,12 @@ python3 skills/ppt-master/scripts/svg_to_pptx.py <project> -a auto --animation-t
 
 **发挥完整实力的组合：**
 
-- **Claude 大上下文窗口**（推荐 ~100 万 token 级别）：大上下文让 Executor 在同一个会话里看到全部已生成页面，在不拆分运行的前提下保持整份 deck 的视觉一致性。上下文不足时被迫走拆分模式，两段之间会出现明显的风格漂移。
-- **AI 生图，推荐 `gpt-image-2.5-sunburst`**（或同等质量）：配图水平是 deck 整体观感的最大变量。用占位级的网络图片和用真正贴合内容的 AI 生成图，视觉效果完全是两个量级。
+- **Kimi K3.1（或 Gemini）大上下文窗口**（推荐 ~100 万 token 级别）：大上下文让 Executor 在同一个会话里看到全部已生成页面，在不拆分运行的前提下保持整份 deck 的视觉一致性。上下文不足时被迫走拆分模式，两段之间会出现明显的风格漂移。
+- **AI 生图，推荐 `gpt-image-2.6-sunburst` 或 `gemini-nano-banana-2.1`**：配图水平是 deck 整体观感的最大变量。用占位级的网络图片和用真正贴合内容的 AI 生成图，视觉效果完全是两个量级。
 
-如果你看到的效果差强人意，先对照以下几点检查你的配置，再下结论：用的什么模型？上下文开了多大？有没有接入图片生成 API？同样的工作流，Claude Opus 配 100 万 token 上下文配 `gpt-image-2.5-sunburst` 的结果，和小参数开源模型配零配置的结果，是截然不同的体验。
+如果你看到的效果差强人意，先对照以下几点检查你的配置，再下结论：用的什么模型？上下文开了多大？有没有接入图片生成 API？同样的工作流，Kimi K3.1（或 Gemini）配 100 万 token 上下文再配 `gpt-image-2.6-sunburst` / `gemini-nano-banana-2.1` 的结果，和小参数开源模型配零配置的结果，是截然不同的体验。
 
-> **没有 Claude 渠道？** 本项目赞助商 [PackyCode](https://www.packyapi.ai/register?aff=ppt-master)、[APIKEY.FAN](https://apikey.fan/register?aff=PPT-MASTER)、[RunAPI](https://runapi.host/register?aff=WMLJ) 与 [ModelGo](https://modelgo.ai/?utm_source=ppt-master&utm_medium=sponsorship&utm_content=readme03&campaign_id=ppt-master-github&ad_group_id=readme03) 均提供 Claude 及其他主流模型的按量付费接入——无需订阅，支持国内支付，开箱即用。各家专属优惠见 [README](../../README_CN.md)。
+> **还没有模型接入渠道？** 用 Kimi K3.1 可直接选本项目赞助商 [Kimi Code](https://www.kimi.com/code/?aff=ppt-master)；想按量调用 Gemini、GPT、Claude 等多家主流模型，赞助商 [PackyCode](https://www.packyapi.ai/register?aff=ppt-master)、[APIKEY.FAN](https://apikey.fan/register?aff=PPT-MASTER)、[RunAPI](https://runapi.host/register?aff=WMLJ) 与 [ModelGo](https://modelgo.ai/?utm_source=ppt-master&utm_medium=sponsorship&utm_content=readme03&campaign_id=ppt-master-github&ad_group_id=readme03) 均提供无需订阅、支持国内支付的聚合接入服务。各家专属优惠见 [README](../../README_CN.md)。
 
 最后再说一句：这是一个免费、个人维护的开源项目。合用就用，能帮到你我很高兴；不合用，换个工具就好。真诚的反馈与建议始终欢迎——这也是项目一点点变好的方式。
 
@@ -436,7 +434,9 @@ Create Template 会先确认简报，再写入已注册、可发现的 `library`
 
 **第三步 — 等待完成**
 
-AI 代理会自动完成后续工作——分析参考、写入 kind 专属规范，仅为 Layout/Deck 构建结构定义，并验证工作区。Brand/Style 不生成预览 PPTX；Layout/Deck 可按请求生成 `exports/<id>_template_preview.pptx`，多 Master 时必须生成。两种范围都要求 `templates/`；Brand/Layout/Deck 可使用包自有 `images/` 和 `icons/`，Style 只贡献自己的 Design Spec。`library` 在 `skills/ppt-master/templates/<kind>/<id>/` 写入裸 `templates/design_spec.md` 并完成全局注册；`project` 在 `projects/<name>/` 写入 `templates/design_spec.<kind>.<id>.md` 并跳过注册，四种 kind 均可各自共存一份；Layout 与 Deck 同时存在时，Layout 拥有有效 SVG roster。空的可选目录直接省略。把这个工作区 root 交给 Step 3 时，项目 root 会原子贡献其中全部 spec，安装不会复制 `exports/`。旧平铺或语义旧包只能作为参考输入，必须通过 `create-template` 重建为当前工作区后才能被 Generate 选择。
+AI 代理会自动完成后续工作——分析参考、写入 kind 专属规范，仅为 Layout/Deck 构建结构定义，并验证工作区。Brand/Style 不生成预览 PPTX；Layout/Deck 可按请求生成 `exports/<id>_template_preview.pptx`，多 Master 时必须生成。两种范围都要求 `templates/`；Brand/Layout/Deck 可使用包自有 `images/` 和 `icons/`，Style 只贡献自己的 Design Spec。`library` 在 `skills/ppt-master/templates/local/<kind>/<id>/` 写入裸 `templates/design_spec.md` 并注册到本地索引；`project` 在 `projects/<name>/` 写入 `templates/design_spec.<kind>.<id>.md` 并跳过注册，四种 kind 均可各自共存一份；Layout 与 Deck 同时存在时，Layout 拥有有效 SVG roster。空的可选目录直接省略。把这个工作区 root 交给 Step 3 时，项目 root 会原子贡献其中全部 spec，安装不会复制 `exports/`。旧平铺或语义旧包只能作为参考输入，必须通过 `create-template` 重建为当前工作区后才能被 Generate 选择。
+
+个人 `templates/local/` 库由 Git 忽略，模板与索引不会和仓库更新冲突。`update_repo.py` 也会把旧版本注册进内置索引的个人模板自动迁入 `local/`；遇到冲突或官方条目被修改时，会保留原状。
 
 > **提示**：对风格和使用场景描述得越具体，生成的模板就越符合你的预期。
 

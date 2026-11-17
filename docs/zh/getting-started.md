@@ -70,7 +70,7 @@ Create Template 会分析参考材料，确认结果属于 Brand、Style、Layou
 
 | 位置 | 路径 | 说明 |
 |---|---|---|
-| **注册进 skill 库** | `skills/ppt-master/templates/<kind>/<id>/` | 可移植工作区并执行全局注册；问“有哪些模板”时会被列出来 |
+| **注册进 skill 库** | `skills/ppt-master/templates/local/<kind>/<id>/` | 由 Git 忽略的个人工作区并注册到本地索引；问“有哪些模板”时会被列出来 |
 | **放在 projects 下** | `projects/<name>/` | 不执行全局注册的共享限定名 spec root；四种 kind 均可共存，结构由 Layout 优先于 Deck |
 
 Default Generate 把模板选择放在 Stage 1，与沟通契约同屏确认；模板不会改写沟通目标，上下文中已有的模板事实（如精确 root 的 kind 与画布）只可影响推荐画布与页数范围。普通请求默认自由设计；用户明确要求模板或提供任意精确 root 时，默认进入模板模式，但界面始终允许切换。未注册 root 会进入指定地址下拉框；与注册 canonical root 完全相同的路径会归回对应 kind 下拉框。只提供一个 root 时可预选它；提供多个 root 时都只作为候选、不预选。完整选择中每个 kind 最多一份；Layout 与 Deck 可以共存，结构由 Layout 提供。多 kind project root 必须原子选择。一次确认同时闭合沟通与模板选择，随后才校验、安装所选 root；最终 Stage 2 才读取安装结果。裸模板名不会被解析为工作区。Project root 可直接被其他项目复用；把其中一项迁入 library 时，需要改变 spec 文件名落点并完成注册。
@@ -185,7 +185,7 @@ PPT Master 最初是纯对话设计;可视化编辑是在很多用户提出后�
 | 情况 | 先试这个 |
 |---|---|
 | AI 跑偏或漏了步骤 | 让它重新读 `skills/ppt-master/SKILL.md`、`skills/ppt-master/workflows/routing.md` 和已选路线的权威文档。 |
-| 视觉质量不理想 | 换成大上下文 Claude 模型 + `gpt-image-2.5-sunburst`——harness 决定下限,模型决定上限。 |
+| 视觉质量不理想 | 换成大上下文 Kimi K3.1 或 Gemini 模型 + `gpt-image-2.6-sunburst` / `gemini-nano-banana-2.1`——harness 决定下限,模型决定上限。 |
 | 文字溢出或元素重叠 | 重跑那一页,或用实时预览修;详见 [FAQ](./faq.md)。 |
 | 没有生图 API key | Agent host 提供原生生图时直接使用,否则零配置网络图片搜索仍可用;见 [FAQ](./faq.md)。 |
 | 动画或部分效果在别的软件里不对 | Microsoft PowerPoint 是动效行为的主要验证目标。Keynote / WPS / LibreOffice 可以打开 `.pptx`，但可能重新映射或省略个别效果或 Start 语义；动效关键交付应在 PowerPoint 中验证。 |

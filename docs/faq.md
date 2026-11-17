@@ -59,7 +59,7 @@ It depends on how you installed PPT Master:
 | Install method | Update method |
 |---|---|
 | Git clone | Run `python3 skills/ppt-master/scripts/update_repo.py` inside the `ppt-master` folder |
-| Download ZIP | Download the latest ZIP, unzip it into a new folder, copy your old `.env` and `projects/` folder into the new folder, then run `pip install -r requirements.txt` |
+| Download ZIP | Download the latest ZIP, unzip it into a new folder, copy your old `.env`, `projects/`, and `skills/ppt-master/templates/local/` (if present) into the same locations, then run `pip install -r requirements.txt` |
 | Skill marketplace | Reinstall or update through the matching marketplace / skills tool |
 
 For long-term use, Git clone is recommended. ZIP is fine for a quick trial, but it has no Git history and cannot run `git pull`.
@@ -277,11 +277,9 @@ For common commands, Start-mode guidance, and object-level customization, see [A
 
 ## Q: Which AI model works best?
 
-**Claude** (Opus / Sonnet) is the recommended and most tested model. SVG layout requires precise absolute-coordinate calculations (font size x character count x container width), and Claude handles this significantly better than alternatives.
+**[Kimi K3.1](https://www.kimi.com/code/?aff=ppt-master)** and **Gemini** (with a ~1M-token context window) are the recommended models for driving the workflow. SVG layout requires exact absolute-coordinate calculations (font size × character count × container width) while holding prior pages in context so the whole deck stays visually consistent.
 
-**GPT series** older versions tended to produce more layout issues — text overflowing containers, misaligned elements, coordinate miscalculations. Newer versions (e.g. GPT-5.5) have improved noticeably and are usable in practice; if issues appear, tell the AI which page to fix.
-
-Other models (Gemini, GLM, MiniMax, etc.) vary in quality. In general, models with stronger frontend/visual capabilities produce better results.
+Other frontier models — including **GPT** and **Claude** — can also drive the pipeline. Earlier or smaller models are more likely to produce overflowing text, misaligned elements, or coordinate drift; if issues appear on a slide, tell the AI which page to fix or switch to a stronger model.
 
 ## Q: Someone said PPT Master is "just a toy" — is that fair?
 
@@ -289,12 +287,12 @@ No. PPT Master is a presentation workflow, not a model or a complete agent. It s
 
 **The full-power combination:**
 
-- **Claude with a large context window** (ideally ~1M tokens): a large context window lets the Executor see every previously generated page in the same session, maintaining visual consistency across the entire deck without splitting runs. Smaller windows force split-mode execution, which introduces visible style drift between phases.
-- **AI image generation with `gpt-image-2.5-sunburst`** (or similar): placeholder-grade stock images are the single biggest reason decks look generic. Replacing them with on-brand AI-generated illustrations changes the perceived quality immediately.
+- **Kimi K3.1 (or Gemini) with a large context window** (ideally ~1M tokens): a large context window lets the Executor see every previously generated page in the same session, maintaining visual consistency across the entire deck without splitting runs. Smaller windows force split-mode execution, which introduces visible style drift between phases.
+- **AI image generation with `gpt-image-2.6-sunburst` or `gemini-nano-banana-2.1`**: placeholder-grade stock images are the single biggest reason decks look generic. Replacing them with on-brand AI-generated illustrations changes the perceived quality immediately.
 
-If the results you've seen look mediocre, check your setup before concluding anything about the tool: What model? What context size? Was image generation enabled? PPT Master + Claude Opus at 1M context + `gpt-image-2.5-sunburst` images is a genuinely different experience from PPT Master + a small open-source model with no image API configured.
+If the results you've seen look mediocre, check your setup before concluding anything about the tool: What model? What context size? Was image generation enabled? PPT Master + Kimi K3.1 (or Gemini) at 1M context + `gpt-image-2.6-sunburst` / `gemini-nano-banana-2.1` images is a genuinely different experience from PPT Master + a small open-source model with no image API configured.
 
-> **No Claude access?** Project sponsors [PackyCode](https://www.packyapi.ai/register?aff=ppt-master), [APIKEY.FAN](https://apikey.fan/register?aff=PPT-MASTER), [RunAPI](https://runapi.host/register?aff=WMLJ) and [ModelGo](https://modelgo.ai/?utm_source=ppt-master&utm_medium=sponsorship&utm_content=readme03&campaign_id=ppt-master-github&ad_group_id=readme03) provide pay-as-you-go access to Claude and other models — no subscription required. See the [README](../README.md) for each sponsor's exclusive perks.
+> **Need model access?** For Kimi K3.1, project sponsor [Kimi Code](https://www.kimi.com/code/?aff=ppt-master) offers direct pay-as-you-go access; for multi-provider pay-as-you-go access across Gemini, GPT, Claude, and other mainstream models without a subscription, check sponsors [PackyCode](https://www.packyapi.ai/register?aff=ppt-master), [APIKEY.FAN](https://apikey.fan/register?aff=PPT-MASTER), [RunAPI](https://runapi.host/register?aff=WMLJ) and [ModelGo](https://modelgo.ai/?utm_source=ppt-master&utm_medium=sponsorship&utm_content=readme03&campaign_id=ppt-master-github&ad_group_id=readme03). See the [README](../README.md) for each sponsor's exclusive perks.
 
 One last thing: this is a free, solo-maintained open-source project. If it fits your needs, use it — I'm glad it helps; if it doesn't, pick another tool. Sincere feedback and suggestions are always welcome, because that's how the project gets a little better over time.
 
@@ -488,7 +486,9 @@ You don't need to supply every detail upfront — the AI agent will ask follow-u
 
 **Step 3 — Wait for the Result**
 
-The AI agent will handle the rest — analyzing your references, writing the kind-specific specification, building structured layout definitions only for Layout/Deck, and validating the workspace. Brand/Style never create a preview PPTX; Layout/Deck generate `exports/<id>_template_preview.pptx` on request and require it for multiple Masters. Both scopes require `templates/`; Brand/Layout/Deck may use package-owned `images/` and `icons/`, while Style contributes only its Design Spec. Library scope writes a bare `templates/design_spec.md` under `skills/ppt-master/templates/<kind>/<id>/` and registers it; project scope writes `templates/design_spec.<kind>.<id>.md` under `projects/<name>/` and skips registration, allowing one contribution of every kind to coexist. Layout owns the active SVG roster when Layout and Deck are both present. Empty optional directories are omitted. Give that workspace root to Step 3; a project root contributes all of its specs atomically, and installation never copies `exports/`. Older flat or semantic-legacy packages are reference inputs only and must be rebuilt through `create-template` before Generate can select them.
+The AI agent will handle the rest — analyzing your references, writing the kind-specific specification, building structured layout definitions only for Layout/Deck, and validating the workspace. Brand/Style never create a preview PPTX; Layout/Deck generate `exports/<id>_template_preview.pptx` on request and require it for multiple Masters. Both scopes require `templates/`; Brand/Layout/Deck may use package-owned `images/` and `icons/`, while Style contributes only its Design Spec. Library scope writes a bare `templates/design_spec.md` under `skills/ppt-master/templates/local/<kind>/<id>/` and registers it in the local index; project scope writes `templates/design_spec.<kind>.<id>.md` under `projects/<name>/` and skips registration, allowing one contribution of every kind to coexist. Layout owns the active SVG roster when Layout and Deck are both present. Empty optional directories are omitted. Give that workspace root to Step 3; a project root contributes all of its specs atomically, and installation never copies `exports/`. Older flat or semantic-legacy packages are reference inputs only and must be rebuilt through `create-template` before Generate can select them.
+
+The personal `templates/local/` library is Git-ignored, so its templates and indexes do not conflict with repository updates. `update_repo.py` also migrates personal templates registered in built-in indexes by older versions into `local/`; conflicting or modified official entries are left unchanged.
 
 > **Tip**: The more specific you are about the style and use case, the better the generated template will match your expectations.
 

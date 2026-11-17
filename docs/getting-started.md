@@ -70,7 +70,7 @@ A created template lives in one of two places:
 
 | Location | Path | Notes |
 |---|---|---|
-| **Registered in the skill library** | `skills/ppt-master/templates/<kind>/<id>/` | Portable workspace plus global registration, so it appears when you ask "what templates are available?" |
+| **Registered in the skill library** | `skills/ppt-master/templates/local/<kind>/<id>/` | Git-ignored personal workspace plus local index registration, so it appears when you ask "what templates are available?" |
 | **Under projects** | `projects/<name>/` | A shared qualified-spec root without global registration; all four kinds may coexist, with Layout taking structural precedence over Deck |
 
 Default Generate shows the template choice inside Stage 1, beside the communication contract. A template never rewrites the communication goal; template facts already in context, such as an exact root's kind and canvas, may inform only the recommended canvas and page range. Ordinary requests start with free design; explicit template intent or any exact root starts in template mode, and the user can always switch. To offer another result, supply its exact **workspace-root path** in chat: an unregistered root appears in the specified-root dropdown, while an exact registered match resolves back to its kind dropdown. Exactly one supplied root may be preselected; multiple supplied roots remain unselected candidates. Each kind may appear once; Layout and Deck may coexist, with Layout supplying structure. A multi-kind project root is selected atomically. One confirmation closes communication and template choice together. Only then are selected roots validated and installed; template-aware planning begins in final Stage 2. A bare template name never resolves to a workspace. A project root can be reused directly by another project; moving one contribution into the library changes its spec filename placement and adds registration.
@@ -188,7 +188,7 @@ The [FAQ](./faq.md) is the living troubleshooting reference — continuously upd
 | Situation | First thing to try |
 |---|---|
 | The AI drifts or forgets a step | Ask it to re-read `skills/ppt-master/SKILL.md`, `skills/ppt-master/workflows/routing.md`, and the selected route authority. |
-| Visual quality disappoints | Switch to a large-context Claude model + `gpt-image-2.5-sunburst` — the harness sets the floor, the model sets the ceiling. |
+| Visual quality disappoints | Switch to a large-context Kimi K3.1 or Gemini model + `gpt-image-2.6-sunburst` / `gemini-nano-banana-2.1` — the harness sets the floor, the model sets the ceiling. |
 | Text overflows or elements overlap | Re-run that page, or fix it in live preview; see the [FAQ](./faq.md). |
 | No image-generation API key | Use the host's native image tool when available; otherwise zero-config web search still works. See the [FAQ](./faq.md). |
 | Animations or some effects look off in another app | Microsoft PowerPoint is the primary motion-validation target. Keynote / WPS / LibreOffice can open the `.pptx`, but may remap or omit individual effects or Start semantics; validate motion-critical delivery in PowerPoint. |
