@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="docs/assets/brand/ppt-master-logo.png"><img src="docs/assets/brand/ppt-master-logo-readme.webp" alt="PPT Master" width="360"></a>
+</p>
+
 # PPT Master — AI 生成原生 PowerPoint，支持任意文档输入
 
 [![Version](https://img.shields.io/github/v/release/XREAL1TY/ppt-master?label=version&color=blue)](https://github.com/XREAL1TY/ppt-master/releases)
